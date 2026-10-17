@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17243a" />
+    <title>Watermelon Fruit Merge</title>
+    <link rel="stylesheet" href="watermelon.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <p class="eyebrow">FRUIT DROP &amp; MERGE</p>
+        <h1>Watermelon</h1>
+        <p class="subtitle">Compete with friends. First to the biggest score wins!</p>
+      </header>
+
+      <section id="lobbyScreen" class="lobby" aria-label="Multiplayer lobby">
+        <div id="lobbyForm">
+          <label class="field-label" for="playerName">Your name</label>
+          <input id="playerName" maxlength="18" autocomplete="nickname" placeholder="Fruit fan" />
+          <div class="lobby-actions">
+            <button id="createRoom" class="primary-button" type="button">Create competition</button>
+          </div>
+          <div class="join-row">
+            <input id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code" />
+            <button id="joinRoom" type="button">Join</button>
+          </div>
+        </div>
+        <p id="lobbyMessage" class="lobby-message" role="status">Create a room or join a friend's room. Up to 4 players.</p>
+
+        <div id="roomPanel" class="room-panel" hidden>
+          <div class="room-code-label">Share this room code</div>
+          <div id="roomCode" class="room-code"></div>
+          <div id="playerList" class="player-list"></div>
+          <button id="startGame" class="primary-button" type="button" hidden>Start competition</button>
+          <button id="backToLobby" class="subtle-button" type="button">Leave room</button>
+        </div>
+      </section>
+
+      <section id="competition" class="competition" hidden aria-label="Multiplayer competition">
+        <div class="scoreboard">
+          <div class="scoreboard-title">
+            <span>ROOM <strong id="activeRoomCode"></strong></span>
+            <span id="matchStatus">Starting…</span>
+          </div>
+          <ol id="scoreboardPlayers"></ol>
+          <button id="newRound" class="subtle-button" type="button" hidden>Play another round</button>
+        </div>
+        <section class="game-card" aria-label="Watermelon fruit merge game">
+          <canvas
+            id="game"
+            width="460"
+            height="700"
+            tabindex="0"
+            aria-label="Game board. Move the fruit with your mouse or arrow keys, then drop it."
+          ></canvas>
+          <div class="touch-controls" aria-label="Touch controls">
+            <button id="leftButton" class="move-button" type="button" aria-label="Move fruit left">←</button>
+            <button id="dropButton" type="button">Drop fruit</button>
+            <button id="rightButton" class="move-button" type="button" aria-label="Move fruit right">→</button>
+          </div>
+          <div class="instructions">
+            <span><kbd>←</kbd> <kbd>→</kbd> move</span>
+            <span><kbd>Space</kbd> drop</span>
+          </div>
+        </section>
+      </section>
+      <footer>Same fruits merge when they touch. Don't let the pile stay above the red line!</footer>
+    </main>
+    <script src="watermelon.js"></script>
+  </body>
+</html>

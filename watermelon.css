@@ -1,0 +1,368 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-rounded, "Segoe UI", Arial, sans-serif;
+  background: #101827;
+  color: #fff7df;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(49, 79, 117, 0.55), transparent 58%),
+    #101827;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+.page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 18px;
+}
+
+.page-header {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: #ffc764;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  letter-spacing: -0.05em;
+}
+
+.subtitle {
+  margin: 3px 0 0;
+  color: #bac8d9;
+  font-size: 0.9rem;
+}
+
+.game-card {
+  width: min(100%, 492px);
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: rgba(24, 36, 55, 0.92);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.lobby {
+  width: min(100%, 440px);
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  background: rgba(24, 36, 55, 0.95);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+}
+
+.field-label,
+.room-code-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #cfdae8;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.lobby input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 10px;
+  outline: none;
+  background: #111d2e;
+  color: #fff7df;
+  font: inherit;
+}
+
+.lobby input:focus-visible {
+  border-color: #ffc764;
+  box-shadow: 0 0 0 2px rgba(255, 199, 100, 0.25);
+}
+
+.lobby-actions {
+  margin-top: 12px;
+}
+
+.lobby button,
+.scoreboard button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: #2a3a53;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lobby button:disabled,
+.scoreboard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lobby .primary-button {
+  width: 100%;
+  border-color: #f2b74e;
+  background: linear-gradient(135deg, #ffd472, #f1a933);
+  color: #38250c;
+}
+
+.join-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.join-row input {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.lobby-message {
+  min-height: 1.4em;
+  margin: 13px 0 0;
+  color: #bac8d9;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.room-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+
+.room-code {
+  margin: 3px 0 15px;
+  color: #ffd472;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.player-list {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 15px;
+  text-align: left;
+}
+
+.player-entry,
+.score-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.player-entry small,
+.score-entry small {
+  color: #bac8d9;
+}
+
+.room-panel .subtle-button,
+.scoreboard .subtle-button {
+  width: 100%;
+  margin-top: 9px;
+  background: transparent;
+}
+
+.competition {
+  width: min(100%, 492px);
+}
+
+.scoreboard {
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 15px;
+  background: rgba(24, 36, 55, 0.95);
+}
+
+.scoreboard-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #bac8d9;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.scoreboard-title strong {
+  color: #ffd472;
+  letter-spacing: 0.14em;
+}
+
+.scoreboard ol {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.score-entry {
+  padding: 7px 10px;
+  font-size: 0.87rem;
+}
+
+.score-entry.is-me {
+  outline: 1px solid rgba(255, 212, 114, 0.6);
+}
+
+.score-value {
+  color: #ffd472;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 13px;
+  outline: none;
+  touch-action: none;
+}
+
+#game:focus-visible {
+  box-shadow: 0 0 0 3px #ffc764;
+}
+
+.touch-controls {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.touch-controls button {
+  min-height: 45px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: #2a3a53;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.touch-controls #dropButton {
+  border-color: #f2b74e;
+  background: linear-gradient(135deg, #ffd472, #f1a933);
+  color: #38250c;
+}
+
+.touch-controls button:active {
+  transform: translateY(1px);
+  filter: brightness(0.92);
+}
+
+.instructions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px 16px;
+  padding: 12px 2px 2px;
+  color: #c2cddd;
+  font-size: 0.75rem;
+}
+
+kbd {
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 5px;
+  background: #27364c;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+
+footer {
+  max-width: 460px;
+  margin-top: 13px;
+  color: #aab7c9;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-height: 850px) and (min-width: 600px) {
+  .page {
+    padding-top: 12px;
+  }
+
+  .page-header {
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .game-card {
+    width: min(100%, 410px);
+    padding: 7px;
+  }
+
+  .touch-controls {
+    margin-top: 7px;
+  }
+
+  .touch-controls button {
+    min-height: 38px;
+  }
+
+  .instructions {
+    padding-top: 8px;
+  }
+
+  footer {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 430px) {
+  .page {
+    padding-inline: 10px;
+  }
+
+  .lobby {
+    padding: 18px;
+  }
+
+  .scoreboard-title {
+    font-size: 0.67rem;
+  }
+}

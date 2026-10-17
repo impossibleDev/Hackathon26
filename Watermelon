@@ -39,7 +39,7 @@ public class WatermelonGame extends JPanel implements ActionListener {
 
     // ---------- Physics tuning ----------
     static final int SUBSTEPS = 6;
-    static final double GRAVITY = 0.45;
+    static final double GRAVITY = 1.0;
     static final double WALL_BOUNCE = 0.25;
     static final double FRUIT_BOUNCE = 0.10;
     static final double AIR_DRAG = 0.999;
