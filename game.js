@@ -11,25 +11,62 @@ window.addEventListener('resize', () => {
   canvas.height = window.innerHeight;
 });
 
-// 1. Create and Load the Player Image
-const playerImage = new Image();
-playerImage.src = 'assets/images/test.jpg'; // Make sure player.png is in the same folder
+// ==========================================
+// PLAYER CLASS (Java-style Object-Oriented)
+// ==========================================
+class Player {
+  constructor(x, y, width, height, speed, imageSrc) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
 
-let imageLoaded = false;
-playerImage.onload = () => {
-  imageLoaded = true; // Image is ready to draw
-};
+    // Load the player's image inside the class
+    this.image = new Image();
+    this.image.src = imageSrc;
+    this.imageLoaded = false;
+    
+    this.image.onload = () => {
+      this.imageLoaded = true;
+    };
+  }
 
-// Player properties
-const player = {
-  x: canvas.width / 2 - 25,
-  y: canvas.height / 2 - 25,
-  width: 50,  // Adjust size as needed
-  height: 50, // Adjust size as needed
-  speed: 6
-};
+  // Equivalent to a Java update method
+  update(keys, canvasWidth, canvasHeight) {
+    if (keys.w && this.y > 0) this.y -= this.speed;
+    if (keys.s && this.y + this.height < canvasHeight) this.y += this.speed;
+    if (keys.a && this.x > 0) this.x -= this.speed;
+    if (keys.d && this.x + this.width < canvasWidth) this.x += this.speed;
+  }
 
-// Key tracking
+  // Equivalent to a Java draw/render method
+  draw(ctx) {
+    if (this.imageLoaded) {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    } else {
+      // Fallback teal square if image hasn't loaded or is missing
+      ctx.fillStyle = '#00ffcc';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+  }
+}
+
+// ==========================================
+// GAME SETUP & STATE
+// ==========================================
+
+// Create an instance of our Player class
+const player = new Player(
+  canvas.width / 2 - 25, 
+  canvas.height / 2 - 25, 
+  50, 
+  50, 
+  6, 
+  'assets/images/test.jpg'
+);
+
+// Key tracking object
 const keys = {
   w: false,
   a: false,
@@ -43,52 +80,36 @@ let startTime = Date.now();
 // Keyboard Listeners
 window.addEventListener('keydown', (e) => {
   const key = e.key.toLowerCase();
-  if (keys.hasOwnProperty(key)) {
-    keys[key] = true;
-  }
+  if (keys.hasOwnProperty(key)) keys[key] = true;
 });
 
 window.addEventListener('keyup', (e) => {
   const key = e.key.toLowerCase();
-  if (keys.hasOwnProperty(key)) {
-    keys[key] = false;
-  }
+  if (keys.hasOwnProperty(key)) keys[key] = false;
 });
 
-// Movement Logic
-function updatePlayer() {
-  if (keys.w && player.y > 0) player.y -= player.speed;
-  if (keys.s && player.y + player.height < canvas.height) player.y += player.speed;
-  if (keys.a && player.x > 0) player.x -= player.speed;
-  if (keys.d && player.x + player.width < canvas.width) player.x += player.speed;
-}
+// ==========================================
+// MAIN GAME LOOP
+// ==========================================
+function gameLoop() {
+  // 1. Update game state
+  player.update(keys, canvas.width, canvas.height);
 
-// Drawing Logic
-function draw() {
-  // Clear screen
+  // 2. Clear the screen
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 2. Draw Player Image (or fall back to green square if image isn't loaded yet)
-  if (imageLoaded) {
-    ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
-  } else {
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-  }
+  // 3. Draw everything
+  player.draw(ctx);
 
-  // 3. Draw Timer
+  // Draw Timer HUD
   const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
   ctx.fillStyle = '#ffffff';
   ctx.font = '24px monospace';
   ctx.fillText(`Time: ${elapsedTime}s`, 30, 50);
-}
 
-// Main Game Loop
-function gameLoop() {
-  updatePlayer();
-  draw();
+  // 4. Repeat loop (60 times per second)
   requestAnimationFrame(gameLoop);
 }
 
-// Start game loop
+// Start the game loop
 gameLoop();
