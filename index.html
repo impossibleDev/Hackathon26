@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pac-Man</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <div class="hud">
+        <div class="hud-label">Score</div>
+        <div id="score">0</div>
+        <div class="hud-label">Lives</div>
+        <div id="lives">3</div>
+      </div>
+
+      <canvas id="game" width="560" height="560" aria-label="Pac-Man game canvas"></canvas>
+
+      <div class="controls">
+        <button id="restartBtn" type="button">Restart</button>
+      </div>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
