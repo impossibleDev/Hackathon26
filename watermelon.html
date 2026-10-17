@@ -12,7 +12,7 @@
       <header class="page-header">
         <p class="eyebrow">FRUIT DROP &amp; MERGE</p>
         <h1>Watermelon</h1>
-        <p class="subtitle">Compete with friends. First to the biggest score wins!</p>
+        <p class="subtitle">Merge fruit solo or compete with friends!</p>
       </header>
 
       <section id="lobbyScreen" class="lobby" aria-label="Multiplayer lobby">
@@ -20,7 +20,8 @@
           <label class="field-label" for="playerName">Your name</label>
           <input id="playerName" maxlength="18" autocomplete="nickname" placeholder="Fruit fan" />
           <div class="lobby-actions">
-            <button id="createRoom" class="primary-button" type="button">Create competition</button>
+            <button id="playSolo" class="primary-button" type="button">Play solo</button>
+            <button id="createRoom" type="button">Create competition</button>
           </div>
           <div class="join-row">
             <input id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code" />
@@ -38,14 +39,16 @@
         </div>
       </section>
 
-      <section id="competition" class="competition" hidden aria-label="Multiplayer competition">
+      <section id="competition" class="competition" hidden aria-label="Watermelon game">
         <div class="scoreboard">
           <div class="scoreboard-title">
-            <span>ROOM <strong id="activeRoomCode"></strong></span>
+            <span><span id="activeRoomLabel">ROOM</span> <strong id="activeRoomCode"></strong></span>
             <span id="matchStatus">Starting…</span>
           </div>
           <ol id="scoreboardPlayers"></ol>
+          <button id="restartSolo" class="subtle-button" type="button" hidden>Play again</button>
           <button id="newRound" class="subtle-button" type="button" hidden>Play another round</button>
+          <button id="backToModes" class="subtle-button" type="button" hidden>Back to modes</button>
         </div>
         <section class="game-card" aria-label="Watermelon fruit merge game">
           <canvas

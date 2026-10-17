@@ -1,10 +1,10 @@
-# Watermelon Multiplayer
+# Watermelon Fruit Merge
 
-The browser game is a separate-board score competition for 2–4 players. Each player gets their own game board; the room host starts the round, and scores update live. The host can start another round after everyone finishes.
+The browser game supports solo play and separate-board score competitions for 2–4 players. In solo mode, play at your own pace and restart after game over. In competitions, each player gets their own board; the room host starts the round, scores update live, and the host can start another round after everyone finishes.
 
 ## Play locally
 
-The HTML page calls the multiplayer server, so opening it directly as a file will not start a competition. Run the server locally for testing or deploy it for cross-device play.
+Solo mode works without a server. Creating or joining a competition requires the multiplayer server, so opening the HTML page directly as a file supports solo play but not competitions. Run the server locally for testing or deploy it for cross-device play.
 
 ## Deploy for online play
 

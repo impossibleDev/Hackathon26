@@ -102,6 +102,8 @@ h1 {
 }
 
 .lobby-actions {
+  display: grid;
+  gap: 9px;
   margin-top: 12px;
 }
 

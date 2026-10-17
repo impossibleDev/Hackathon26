@@ -31,8 +31,11 @@
   const roomPanel = document.getElementById("roomPanel");
   const createRoomButton = document.getElementById("createRoom");
   const joinRoomButton = document.getElementById("joinRoom");
+  const playSoloButton = document.getElementById("playSolo");
   const startGameButton = document.getElementById("startGame");
   const newRoundButton = document.getElementById("newRound");
+  const restartSoloButton = document.getElementById("restartSolo");
+  const backToModesButton = document.getElementById("backToModes");
   const fruits = [];
   const rng = Math.random;
   let score = 0;
@@ -48,6 +51,7 @@
   let accumulator = 0;
   let session = loadSession();
   let matchRunning = false;
+  let soloMode = false;
   let matchRound = 0;
   let lastPostedScore = -1;
   let lastPostedDone = false;
@@ -116,6 +120,7 @@
   }
 
   function setLobbyBusy(busy) {
+    playSoloButton.disabled = busy;
     createRoomButton.disabled = busy;
     joinRoomButton.disabled = busy;
     startGameButton.disabled = busy;
@@ -159,6 +164,7 @@
   }
 
   function showLobby() {
+    soloMode = false;
     lobbyScreen.hidden = false;
     competitionScreen.hidden = true;
     roomPanel.hidden = !session;
@@ -215,7 +221,7 @@
   }
 
   async function pollRoom() {
-    if (!session || pollInProgress) return;
+    if (!session || pollInProgress || soloMode) return;
     pollInProgress = true;
     try {
       const state = await requestApi(roomPath());
@@ -227,6 +233,8 @@
         matchRunning = false;
         renderLobby(state);
       } else {
+        document.getElementById("activeRoomLabel").textContent = "ROOM";
+        document.getElementById("scoreboardPlayers").hidden = false;
         renderScoreboard(state);
         lobbyScreen.hidden = true;
         competitionScreen.hidden = false;
@@ -290,6 +298,34 @@
     matchRunning = false;
     matchRound = 0;
     saveSession();
+    showLobby();
+    setLobbyMessage("Create a room or join a friend's room. Up to 4 players.");
+  }
+
+  function startSolo() {
+    soloMode = true;
+    matchRound = 0;
+    lobbyScreen.hidden = true;
+    competitionScreen.hidden = false;
+    document.getElementById("activeRoomLabel").textContent = "SINGLE PLAYER";
+    document.getElementById("activeRoomCode").textContent = "";
+    document.getElementById("matchStatus").textContent = "Playing solo";
+    document.getElementById("scoreboardPlayers").hidden = true;
+    restartSoloButton.hidden = false;
+    newRoundButton.hidden = true;
+    backToModesButton.hidden = false;
+    restart();
+  }
+
+  function exitSolo() {
+    soloMode = false;
+    matchRunning = false;
+    score = 0;
+    lobbyScreen.hidden = false;
+    competitionScreen.hidden = true;
+    document.getElementById("scoreboardPlayers").hidden = false;
+    restartSoloButton.hidden = true;
+    backToModesButton.hidden = true;
     showLobby();
     setLobbyMessage("Create a room or join a friend's room. Up to 4 players.");
   }
@@ -594,7 +630,11 @@
     ctx.font = "22px system-ui, sans-serif";
     ctx.fillText(`Score: ${score}`, WIDTH / 2, HEIGHT / 2 + 20);
     ctx.font = "16px system-ui, sans-serif";
-    ctx.fillText("Waiting for the other players to finish", WIDTH / 2, HEIGHT / 2 + 55);
+    ctx.fillText(
+      soloMode ? "Click or press R to play again" : "Waiting for the other players to finish",
+      WIDTH / 2,
+      HEIGHT / 2 + 55
+    );
   }
 
   function frame(timestamp) {
@@ -623,13 +663,17 @@
   canvas.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     canvas.focus({ preventScroll: true });
-    if (gameOver) return;
+    if (gameOver) {
+      if (soloMode) restart();
+      return;
+    }
     dropperX = pointerX(event);
     clampDropper();
     drop();
   });
   canvas.addEventListener("keydown", (event) => {
     if (event.key.toLowerCase() === "r") {
+      if (soloMode) restart();
       return;
     }
     if (!matchRunning || gameOver) return;
@@ -660,8 +704,11 @@
 
   createRoomButton.addEventListener("click", createRoom);
   joinRoomButton.addEventListener("click", joinRoom);
+  playSoloButton.addEventListener("click", startSolo);
   startGameButton.addEventListener("click", startCompetition);
   newRoundButton.addEventListener("click", startNewRound);
+  restartSoloButton.addEventListener("click", restart);
+  backToModesButton.addEventListener("click", exitSolo);
   document.getElementById("backToLobby").addEventListener("click", leaveRoom);
   document.getElementById("roomCodeInput").addEventListener("keydown", (event) => {
     if (event.key === "Enter") joinRoom();
