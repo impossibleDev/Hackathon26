@@ -1,0 +1,377 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * Watermelon Game (Suika-style) in a single Java Swing file.
+ *
+ * Controls:
+ *   Mouse move / Left & Right arrows : move the dropper
+ *   Click / Space / Down arrow        : drop the fruit
+ *   R                                 : restart
+ *
+ * Compile: javac WatermelonGame.java
+ * Run:     java WatermelonGame
+ */
+public class WatermelonGame extends JPanel implements ActionListener {
+
+    // ---------- Layout ----------
+    static final int WIDTH = 460, HEIGHT = 700;
+    static final int LEFT = 40, RIGHT = 420, FLOOR = 660;
+    static final int DANGER_LINE = 170;
+
+    // ---------- Fruit definitions ----------
+    static final String[] NAMES = {
+        "Cherry", "Strawberry", "Grape", "Orange", "Persimmon",
+        "Apple", "Pear", "Peach", "Pineapple", "Melon", "Watermelon"
+    };
+    static final int[] RADII = {14, 20, 27, 34, 42, 51, 61, 72, 84, 97, 112};
+    static final Color[] COLORS = {
+        new Color(220, 40, 60),   new Color(250, 90, 110), new Color(140, 80, 190),
+        new Color(255, 160, 40),  new Color(245, 120, 30), new Color(200, 50, 50),
+        new Color(190, 215, 80),  new Color(255, 185, 170), new Color(240, 210, 60),
+        new Color(150, 220, 120), new Color(40, 150, 70)
+    };
+    static final int MAX_LEVEL = NAMES.length - 1;
+
+    // ---------- Physics tuning ----------
+    static final int SUBSTEPS = 6;
+    static final double GRAVITY = 0.45;
+    static final double WALL_BOUNCE = 0.25;
+    static final double FRUIT_BOUNCE = 0.10;
+    static final double AIR_DRAG = 0.999;
+
+    static class Fruit {
+        double x, y, vx, vy;
+        int level, age;
+        boolean dead;
+
+        Fruit(double x, double y, int level) {
+            this.x = x;
+            this.y = y;
+            this.level = level;
+        }
+
+        int r() { return RADII[level]; }
+        double mass() { return r() * r(); }
+    }
+
+    // ---------- Game state ----------
+    private final List<Fruit> fruits = new ArrayList<>();
+    private final Random rng = new Random();
+    private final Timer timer = new Timer(16, this);
+
+    private int score, best;
+    private int currentLevel, nextLevel;
+    private double dropperX = (LEFT + RIGHT) / 2.0;
+    private int cooldown;
+    private int overTicks;
+    private boolean gameOver;
+    private boolean wonWatermelon;
+
+    public WatermelonGame() {
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setBackground(new Color(255, 244, 214));
+        setFocusable(true);
+
+        addMouseMotionListener(new MouseAdapter() {
+            @Override public void mouseMoved(MouseEvent e) { dropperX = e.getX(); }
+            @Override public void mouseDragged(MouseEvent e) { dropperX = e.getX(); }
+        });
+        addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) {
+                if (gameOver) restart(); else drop();
+            }
+        });
+        addKeyListener(new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_LEFT:  dropperX -= 12; break;
+                    case KeyEvent.VK_RIGHT: dropperX += 12; break;
+                    case KeyEvent.VK_SPACE:
+                    case KeyEvent.VK_DOWN:  drop(); break;
+                    case KeyEvent.VK_R:     restart(); break;
+                }
+            }
+        });
+
+        restart();
+        timer.start();
+    }
+
+    private void restart() {
+        fruits.clear();
+        score = 0;
+        gameOver = false;
+        wonWatermelon = false;
+        overTicks = 0;
+        cooldown = 20;
+        currentLevel = randomStarterLevel();
+        nextLevel = randomStarterLevel();
+    }
+
+    private int randomStarterLevel() { return rng.nextInt(5); } // cherry..persimmon
+
+    private void drop() {
+        if (gameOver || cooldown > 0) return;
+        clampDropper();
+        fruits.add(new Fruit(dropperX, DANGER_LINE - 40, currentLevel));
+        currentLevel = nextLevel;
+        nextLevel = randomStarterLevel();
+        cooldown = 35;
+    }
+
+    private void clampDropper() {
+        int r = RADII[currentLevel];
+        dropperX = Math.max(LEFT + r + 2, Math.min(RIGHT - r - 2, dropperX));
+    }
+
+    // ---------- Game loop ----------
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (!gameOver) {
+            if (cooldown > 0) cooldown--;
+            clampDropper();
+
+            for (int i = 0; i < SUBSTEPS; i++) step(1.0 / SUBSTEPS);
+            checkGameOver();
+        }
+        repaint();
+    }
+
+    private void step(double dt) {
+        // integrate
+        for (Fruit f : fruits) {
+            f.vy += GRAVITY * dt;
+            f.vx *= Math.pow(AIR_DRAG, dt);
+            f.vy *= Math.pow(AIR_DRAG, dt);
+            f.x += f.vx * dt;
+            f.y += f.vy * dt;
+            f.age++;
+        }
+
+        // walls
+        for (Fruit f : fruits) {
+            int r = f.r();
+            if (f.x - r < LEFT)  { f.x = LEFT + r;  f.vx = Math.abs(f.vx) * WALL_BOUNCE; }
+            if (f.x + r > RIGHT) { f.x = RIGHT - r; f.vx = -Math.abs(f.vx) * WALL_BOUNCE; }
+            if (f.y + r > FLOOR) {
+                f.y = FLOOR - r;
+                f.vy = -Math.abs(f.vy) * WALL_BOUNCE;
+                f.vx *= 0.97; // floor friction
+            }
+        }
+
+        // fruit vs fruit
+        List<Fruit> spawned = new ArrayList<>();
+        int n = fruits.size();
+        for (int i = 0; i < n; i++) {
+            Fruit a = fruits.get(i);
+            if (a.dead) continue;
+            for (int j = i + 1; j < n; j++) {
+                Fruit b = fruits.get(j);
+                if (b.dead) continue;
+
+                double dx = b.x - a.x, dy = b.y - a.y;
+                double minDist = a.r() + b.r();
+                double distSq = dx * dx + dy * dy;
+                if (distSq >= minDist * minDist) continue;
+
+                double dist = Math.sqrt(distSq);
+                if (dist < 1e-6) { dx = 0; dy = -1; dist = 1e-6; }
+
+                // Merge same fruits
+                if (a.level == b.level) {
+                    a.dead = b.dead = true;
+                    if (a.level == MAX_LEVEL) {
+                        score += 200;               // two watermelons vanish for a bonus
+                        wonWatermelon = true;
+                    } else {
+                        int newLevel = a.level + 1;
+                        score += (newLevel + 1) * (newLevel + 2) / 2 * 2;
+                        Fruit merged = new Fruit((a.x + b.x) / 2, (a.y + b.y) / 2, newLevel);
+                        merged.vx = (a.vx + b.vx) / 2;
+                        merged.vy = (a.vy + b.vy) / 2;
+                        merged.age = Math.min(a.age, b.age);
+                        spawned.add(merged);
+                    }
+                    break;
+                }
+
+                // Otherwise resolve overlap
+                double nx = dx / dist, ny = dy / dist;
+                double overlap = minDist - dist;
+                double ma = a.mass(), mb = b.mass(), total = ma + mb;
+
+                a.x -= nx * overlap * (mb / total);
+                a.y -= ny * overlap * (mb / total);
+                b.x += nx * overlap * (ma / total);
+                b.y += ny * overlap * (ma / total);
+
+                double rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+                double velAlongNormal = rvx * nx + rvy * ny;
+                if (velAlongNormal < 0) {
+                    double impulse = -(1 + FRUIT_BOUNCE) * velAlongNormal / (1 / ma + 1 / mb);
+                    a.vx -= impulse / ma * nx;
+                    a.vy -= impulse / ma * ny;
+                    b.vx += impulse / mb * nx;
+                    b.vy += impulse / mb * ny;
+                }
+            }
+        }
+
+        if (!spawned.isEmpty() || fruits.stream().anyMatch(f -> f.dead)) {
+            fruits.removeIf(f -> f.dead);
+            fruits.addAll(spawned);
+        }
+        best = Math.max(best, score);
+    }
+
+    private void checkGameOver() {
+        boolean over = false;
+        for (Fruit f : fruits) {
+            // Fruit has had time to settle but still sits above the line
+            if (f.age > 60 * SUBSTEPS && f.y - f.r() < DANGER_LINE) { over = true; break; }
+        }
+        overTicks = over ? overTicks + 1 : 0;
+        if (overTicks > 60) gameOver = true;
+    }
+
+    // ---------- Rendering ----------
+    @Override
+    protected void paintComponent(Graphics g0) {
+        super.paintComponent(g0);
+        Graphics2D g = (Graphics2D) g0;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // container
+        g.setColor(new Color(255, 232, 170));
+        g.fillRect(LEFT, DANGER_LINE - 60, RIGHT - LEFT, FLOOR - DANGER_LINE + 60);
+        g.setColor(new Color(120, 80, 40));
+        g.setStroke(new BasicStroke(8, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawLine(LEFT, DANGER_LINE - 60, LEFT, FLOOR);
+        g.drawLine(LEFT, FLOOR, RIGHT, FLOOR);
+        g.drawLine(RIGHT, FLOOR, RIGHT, DANGER_LINE - 60);
+
+        // danger line (flashes when close to game over)
+        boolean warn = overTicks > 0 && (overTicks / 8) % 2 == 0;
+        g.setColor(warn ? Color.RED : new Color(220, 80, 80, 140));
+        g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10,
+                new float[]{10, 8}, 0));
+        g.drawLine(LEFT, DANGER_LINE, RIGHT, DANGER_LINE);
+
+        // fruits
+        for (Fruit f : fruits) drawFruit(g, f.x, f.y, f.level, 1f);
+
+        // dropper + guide line
+        if (!gameOver) {
+            int r = RADII[currentLevel];
+            g.setColor(new Color(0, 0, 0, 40));
+            g.setStroke(new BasicStroke(1));
+            g.drawLine((int) dropperX, DANGER_LINE - 40 + r, (int) dropperX, FLOOR);
+            if (cooldown == 0) drawFruit(g, dropperX, DANGER_LINE - 40, currentLevel, 1f);
+        }
+
+        drawHud(g);
+        if (gameOver) drawGameOver(g);
+    }
+
+    private void drawFruit(Graphics2D g, double cx, double cy, int level, float alpha) {
+        int r = RADII[level];
+        int x = (int) (cx - r), y = (int) (cy - r);
+        Color base = COLORS[level];
+
+        // body
+        g.setColor(base);
+        g.fillOval(x, y, r * 2, r * 2);
+
+        // watermelon: red flesh inside green rind
+        if (level == MAX_LEVEL) {
+            g.setColor(new Color(235, 60, 70));
+            int in = (int) (r * 0.78);
+            g.fillOval((int) cx - in, (int) cy - in, in * 2, in * 2);
+            g.setColor(new Color(30, 30, 30));
+            for (int i = 0; i < 8; i++) {
+                double ang = i * Math.PI / 4 + 0.4;
+                int sx = (int) (cx + Math.cos(ang) * in * 0.55);
+                int sy = (int) (cy + Math.sin(ang) * in * 0.55);
+                g.fillOval(sx - 3, sy - 5, 6, 10);
+            }
+        }
+
+        // outline
+        g.setStroke(new BasicStroke(3));
+        g.setColor(base.darker().darker());
+        g.drawOval(x, y, r * 2, r * 2);
+
+        // shine
+        g.setColor(new Color(255, 255, 255, 110));
+        g.fillOval(x + r / 4, y + r / 5, r / 2, r / 3);
+
+        // label (skipped on the watermelon so the flesh shows)
+        if (level != MAX_LEVEL) {
+            g.setColor(new Color(40, 25, 10, 200));
+            g.setFont(new Font("SansSerif", Font.BOLD, Math.max(9, r / 3)));
+            String t = String.valueOf(level + 1);
+            FontMetrics fm = g.getFontMetrics();
+            g.drawString(t, (int) cx - fm.stringWidth(t) / 2, (int) cy + fm.getAscent() / 2 - 2);
+        }
+    }
+
+    private void drawHud(Graphics2D g) {
+        g.setColor(new Color(90, 55, 25));
+        g.setFont(new Font("SansSerif", Font.BOLD, 22));
+        g.drawString("Score: " + score, 20, 32);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        g.drawString("Best: " + best, 20, 52);
+
+        // next fruit preview
+        g.setFont(new Font("SansSerif", Font.BOLD, 14));
+        g.drawString("Next", WIDTH - 90, 28);
+        int r = RADII[nextLevel];
+        drawFruit(g, WIDTH - 55, 62, nextLevel, 1f);
+        g.setColor(new Color(90, 55, 25));
+        g.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        String name = NAMES[nextLevel];
+        g.drawString(name, WIDTH - 55 - g.getFontMetrics().stringWidth(name) / 2, 62 + r + 14);
+
+        if (wonWatermelon) {
+            g.setColor(new Color(40, 150, 70));
+            g.setFont(new Font("SansSerif", Font.BOLD, 14));
+            g.drawString("You made a Watermelon!", 20, 72);
+        }
+    }
+
+    private void drawGameOver(Graphics2D g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("SansSerif", Font.BOLD, 44));
+        drawCentered(g, "GAME OVER", HEIGHT / 2 - 20);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 22));
+        drawCentered(g, "Score: " + score, HEIGHT / 2 + 20);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        drawCentered(g, "Click or press R to restart", HEIGHT / 2 + 55);
+    }
+
+    private void drawCentered(Graphics2D g, String s, int y) {
+        g.drawString(s, (WIDTH - g.getFontMetrics().stringWidth(s)) / 2, y);
+    }
+
+    // ---------- Entry point ----------
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Watermelon Game");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setContentPane(new WatermelonGame());
+            frame.pack();
+            frame.setResizable(false);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
+    }
+}
