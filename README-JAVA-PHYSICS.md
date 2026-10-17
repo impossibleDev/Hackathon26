@@ -1,13 +1,12 @@
-# Suika-style Java Game
+# Watermelon Fruit Merge (Java)
 
-This project is now a simple Suika-style fruit merging game written in Java using Swing.
+Drop fruits into the container and merge matching fruits into the next fruit in the chain. Keep combining them to make a watermelon, and try not to let the pile reach the red line.
 
 How to play:
-- Left/Right arrow keys move the fruit
-- Space drops it
-- R resets the game
-- Same-sized fruits merge into a bigger fruit
-- Try to build the biggest fruit you can without stacking too high
+- Move the mouse or use the left/right arrow keys to position the next fruit
+- Press Space, Down, or click in the container to drop it
+- Matching touching fruits merge automatically
+- R restarts the game; the best score remains for the current run
 
 Run it from the project root:
 
@@ -20,4 +19,4 @@ Or just double-click:
 
 - `run-physics.bat`
 
-This is a lightweight browser-less Java version inspired by the classic Suika / watermelon game.
+This is an original Java Swing game inspired by the watermelon fruit-merging genre.
